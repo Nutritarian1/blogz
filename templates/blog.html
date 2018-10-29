@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1><center>Build A Blog</center></h1>
+
+    {% if listings|length == 0 %}
+        <p>No entries yet</p>
+    {% else %}
+        <ul>
+        {% for listing in listings %}
+            <li><h2><a href="/blog?id={{listing.id}}">{{listing.title}}</a></h2>
+                <p>{{listing.body}}</p>
+            </li>
+        {% endfor %}
+        </ul>
+
+    {% endif %}
+{% endblock %}
