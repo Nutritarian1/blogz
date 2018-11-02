@@ -1,3 +1,4 @@
+import datetime
 from flask import Flask, request, redirect, render_template
 from flask_sqlalchemy import SQLAlchemy 
 
@@ -14,25 +15,29 @@ class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
     body = db.Column(db.Text)
+    pub_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def __init__(self, title, body):
         self.title = title
         self.body = body
+      
 
 @app.route('/blog', methods=['GET'])
 def index():
 
     id = request.args.get("id")
-    listings = Blog.query.all()
 
     if not id:
+        listings = Blog.query.order_by(Blog.pub_date.desc()).all()
         return render_template('blog.html', title="Build A Blog",
             listings=listings)
     else:
-        name=listings[int(id)-1].title
-        body=listings[int(id)-1].body
+        listings = Blog.query.filter_by(id=id).first()
+        name=listings.title
+        body=listings.body
+        pubdate=listings.pub_date
         return render_template('display_entry.html', 
-            name=name, body=body)
+            name=name, body=body, pubdate=pubdate)
 
 @app.route('/newpost', methods=['POST'])
 def postform():
