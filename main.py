@@ -1,4 +1,5 @@
 import datetime
+import pytz
 from flask import Flask, request, redirect, render_template
 from flask_sqlalchemy import SQLAlchemy 
 
@@ -9,6 +10,7 @@ app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://build-a-blog:BABBAB111999BAB@localhost:8889/build-a-blog'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
+central = pytz.timezone('America/Chicago')
 
 class Blog(db.Model):
 
@@ -28,14 +30,25 @@ def index():
     id = request.args.get("id")
 
     if not id:
+        # Query the blog table to create a list of all existing blog entries
+        # in descending order by publication date, so that the most
+        # recent blog entries appear first. This list will be rendered
+        # on the main blog page. Note: The publication date is stored
+        # in the database as UTC, but will be displayed in local time.
+
         listings = Blog.query.order_by(Blog.pub_date.desc()).all()
+        for listing in listings:
+            listing.pub_date=pytz.utc.localize(listing.pub_date).astimezone(central)
         return render_template('blog.html', title="Build A Blog",
             listings=listings)
     else:
-        listings = Blog.query.filter_by(id=id).first()
-        name=listings.title
-        body=listings.body
-        pubdate=listings.pub_date
+        # From the blog main page, when a user clicks on a blog entry's title,
+        # the entry will be displayed by itself, on its own individual entry page.
+
+        listing = Blog.query.filter_by(id=id).first()
+        name=listing.title
+        body=listing.body
+        pubdate=pytz.utc.localize(listing.pub_date).astimezone(central)
         return render_template('display_entry.html', 
             name=name, body=body, pubdate=pubdate)
 
@@ -58,6 +71,9 @@ def postform():
         db.session.add(new_listing)
         db.session.commit() 
         id=new_listing.id
+        # After adding a new blog post to the database, instead of going
+        # back to the main page, we go to that blog post's individual entry
+        # page to display the new post.
         return redirect("/blog?id=" + str(id))
     else:
         return render_template('newpost.html',title="Add a Blog",
