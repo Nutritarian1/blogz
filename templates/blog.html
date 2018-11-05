@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1><center>Build A Blog</center></h1>
+    <h1><center>Blog Posts!</center></h1>
 
     {% if listings|length == 0 %}
         <p>No entries yet</p>
@@ -10,7 +10,8 @@
         {% for listing in listings %}
             <li><h2><a href="/blog?id={{listing.id}}">{{listing.title}}</a></h2>
                 <p>{{listing.body}}</p>
-                <em>{{listing.pub_date.strftime(('Date Published: %A, %B %d, %Y'))}}<br>
+                <em>Written by: <a href="/blog?user={{listing.owner_id}}">{{listing.owner.username}}</a><br><br>
+                {{listing.pub_date.strftime(('Date Published: %A, %B %d, %Y'))}}<br>
                 {{listing.pub_date.strftime(('Time Published: %I:%M %p %Z'))}}</em><br><br>
             </li>
         {% endfor %}

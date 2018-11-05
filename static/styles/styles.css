@@ -1,38 +1,37 @@
-
-input[type=submit] {
+.error {
+    color: red;
+}
+header,main, footer,body {
+    background-color: powderblue;
+}
+nav ul {
+    padding: 0;
+    display: inline-block;
+}
+nav ul li {
+    list-style: none;
+    display: inline-block;
+    margin-right: 15px;
+}
+nav #user-info {
+    float: right;
+}
+.newpost input {
+    width: 300px;
+    height: 20px;
+}
+.newpost input[type=submit] {
     width: 10em; 
     height: 3em;
     font-size: 120%
 }
-
-header,
-main, 
-footer,
-body {
-	background-color: powderblue;
-	;
-}
-
-label,
-p,
-nav,
-h2 {
+.newpost label,p,nav,h2 {
     font-size: 120%;
 }
-
 h1 {
-	font-size: 2.5em;
+    font-size: 2.5em;
 }
-
-textarea {
+.newpost textarea {
     width: 300px;
     height: 150px;
-  }
-
-input {
-    width: 300px;
-    height: 20px;
 }
-
-
-
