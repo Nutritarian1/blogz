@@ -2,6 +2,7 @@ import datetime
 import pytz
 from flask import Flask, request, redirect, render_template, session
 from flask_sqlalchemy import SQLAlchemy 
+from hashutils import make_pw_hash, check_pw_hash
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -30,12 +31,13 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120),unique=True)
-    password = db.Column(db.String(120))
+    pw_hash = db.Column(db.String(120))
     blogs = db.relationship('Blog', backref='owner')
 
     def __init__(self, username, password):
         self.username = username
         self.password = password
+        self.pw_hash = make_pw_hash(password)
       
 @app.before_request
 def require_login():
@@ -50,7 +52,7 @@ def login():
         username=request.form['username']
         password=request.form['password']
         user=User.query.filter_by(username=username).first()
-        if user and user.password == password:
+        if user and check_pw_hash(password, user.pw_hash):
             session['username']=username
             return redirect('/blog/newpost')
         if not user:
@@ -122,8 +124,8 @@ def blog():
         # on the main blog page. Note: The publication date is stored
         # in the database as UTC, but will be displayed in local time.
 
-        listings = Blog.query.order_by(Blog.pub_date.desc()).all()
-        for listing in listings:
+        listings = Blog.query.order_by(Blog.pub_date.desc()).paginate(per_page=5)
+        for listing in listings.items:
             listing.pub_date=pytz.utc.localize(listing.pub_date).astimezone(central)
         return render_template('blog.html', title="Blog Posts!",
             listings=listings)
@@ -145,11 +147,11 @@ def blog():
         # owned by that user.
 
         owner = User.query.filter_by(id=userId).first()
-        listings = Blog.query.filter_by(owner=owner).order_by(Blog.pub_date.desc()).all()
-        for listing in listings:
+        listings = Blog.query.filter_by(owner=owner).order_by(Blog.pub_date.desc()).paginate(per_page=5)
+        for listing in listings.items:
             listing.pub_date=pytz.utc.localize(listing.pub_date).astimezone(central)
         return render_template('blog.html', title="Blog Posts!",
-            listings=listings)
+            listings=listings, user=userId)
 
 @app.route('/blog/newpost', methods=['POST'])
 def postform():
